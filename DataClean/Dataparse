@@ -1,0 +1,489 @@
+import requests
+import random
+import pandas as pd
+from pandas import DataFrame
+import json
+import csv
+
+# here we define parameters for the four queries
+db_name = "nebulas"
+batch_size = "10"
+nr_batch_size = "2"
+nr_batch_date = "20181111"
+nr_date_range = "20180514-20180521"
+nr_date_address = "n1LU1oScwBM5K3gS9xCRA6K2EFVoVAxP93B"
+nr_week_address = "n1VAjmgGEjYHo22Yq7LVGrWf8vtps9qsbNC"
+transaction_address = "n1NasAppVRkrE3fNqeQaEa2wiJEXBZU6Vxp"
+collection = "nr_week"
+start_ts = "1526256000"
+end_ts = "1526257000"
+
+# this function returns a list of all optional dates
+def getDates():
+	dates_url = "http://111.203.228.11:9973/keyset?db=nebulas&collection=nr&field=date"
+	dates_page = requests.get(dates_url)
+	dates_json = dates_page.text
+	dates_dict = json.loads(dates_json)
+	dates = dates_dict['result']
+	return dates
+	
+# this function returns a list of all date ranges
+def getDatesRange():
+	range_url = "http://111.203.228.11:9973/keyset?db=nebulas&collection=nr_week&field=date"
+	range_page = requests.get(range_url)
+	range_json = range_page.text
+	range_dict = json.loads(range_json)
+	dates_range = range_dict['result']
+	return dates_range
+		
+
+# this function query the nr address on the given date	
+def nrGivenDate(db, batch, date, address):
+	nr_f = csv.writer(open('nr_date.csv', 'w'))
+	nr_f.writerow(['has_more', 'in_outs', 'in_val', 'out_degree', 'weight', 'out_val', '_key', 'in_degree', '_rev', 'median', 'score', 'degrees',
+		   'address', 'date', '_id', 'id'])
+
+	nr_url = "http://111.203.228.11:9973/nr?db=" + db + "&batch_size=" + batch + "&date=" + date + "&address=" + address
+	nr_page = requests.get(nr_url)
+	nr_json = nr_page.text
+	nr_dict = json.loads(nr_json)
+	
+	has_more = nr_dict['has_more']
+	results = nr_dict['result']
+	id = nr_dict['id']
+	if id == None:
+		id = "None"
+		
+	inouts = []
+	invals = []
+	outdegrees = []
+	weights = []
+	outvals = []
+	_keys = []
+	indegrees = []
+	_revs = []
+	medians = []
+	scores = []
+	degreess = []
+	addresses = []
+	dates = []
+	_ids = []
+	
+	for i in range(0, len(results)):
+		in_outs = nr_dict['result'][i]['in_outs']
+		inouts.append(in_outs)
+		in_val = nr_dict['result'][i]['in_val']
+		invals.append(in_val)
+		out_degree = nr_dict['result'][i]['out_degree']
+		outdegrees.append(out_degree)
+		weight = nr_dict['result'][i]['weight']
+		weights.append(weight)
+		out_val = nr_dict['result'][i]['out_val']
+		outvals.append(out_val)
+		_key = nr_dict['result'][i]['_key']
+		_keys.append(_key)
+		in_degree = nr_dict['result'][i]['in_degree']
+		indegrees.append(in_degree)
+		_rev = nr_dict['result'][i]['_rev']
+		_revs.append(_rev)
+		median = nr_dict['result'][i]['median']
+		medians.append(median)
+		score = nr_dict['result'][i]['score']
+		scores.append(score)
+		degrees = nr_dict['result'][i]['degrees']
+		degreess.append(degrees)
+		address = nr_dict['result'][i]['address']
+		addresses.append(address)
+		date = nr_dict['result'][i]['date']
+		dates.append(date)
+		_id = nr_dict['result'][i]['_id']
+		_ids.append(_id)
+		
+		nr_f.writerow([has_more, in_outs, in_val, out_degree, weight, out_val, _key, in_degree, _rev, median, score, degrees, address,
+					date, _id, id])
+					
+	nr_date_df = pd.DataFrame({'has_more': has_more,
+					  'in_outs': inouts,
+					  'in_val': invals,
+					  'out_degree': outdegrees,
+					  'weight': weights,
+					  'out_val': outvals,
+					  '_key': _keys,
+					  'in_degree': indegrees,
+					  '_rev': _revs,
+					  'median': medians,
+					  'score': scores,
+					  'degrees': degreess,
+					  'address': addresses,
+					  'date': dates,
+					  '_id': _ids,
+					  'id': id
+	})
+	print(nr_date_df)
+	
+	
+# this function query the nr address on the given week	
+def nrGivenWeek(db, collection, batch, date, address):
+	nr_f = csv.writer(open('nr_week.csv', 'w'))
+	nr_f.writerow(['has_more', 'in_outs', 'in_val', 'out_degree', 'weight', 'out_val', '_key', 'in_degree', '_rev', 'median', 'score', 'degrees',
+			   'address', 'date', '_id', 'id'])
+			   
+	nr_url = "http://111.203.228.11:9973/nr?db=" + db + "&collection=" + collection + "&batch_size=" + batch + "&date=" + date + "&address=" + address
+	nr_page = requests.get(nr_url)
+	nr_json = nr_page.text
+	nr_dict = json.loads(nr_json)
+	
+	has_more = nr_dict['has_more']
+	results = nr_dict['result']
+	id = nr_dict['id']
+	if id == None:
+		id = "None"
+		
+	inouts = []
+	invals = []
+	outdegrees = []
+	weights = []
+	outvals = []
+	_keys = []
+	indegrees = []
+	_revs = []
+	medians = []
+	scores = []
+	degreess = []
+	addresses = []
+	dates = []
+	_ids = []
+
+
+	for i in range(0, len(results)):
+		in_outs = nr_dict['result'][i]['in_outs']
+		inouts.append(in_outs)
+		in_val = nr_dict['result'][i]['in_val']
+		invals.append(in_val)
+		out_degree = nr_dict['result'][i]['out_degree']
+		outdegrees.append(out_degree)
+		weight = nr_dict['result'][i]['weight']
+		weights.append(weight)
+		out_val = nr_dict['result'][i]['out_val']
+		outvals.append(out_val)
+		_key = nr_dict['result'][i]['_key']
+		_keys.append(_key)
+		in_degree = nr_dict['result'][i]['in_degree']
+		indegrees.append(in_degree)
+		_rev = nr_dict['result'][i]['_rev']
+		_revs.append(_rev)
+		median = nr_dict['result'][i]['median']
+		medians.append(median)
+		score = nr_dict['result'][i]['score']
+		scores.append(score)
+		degrees = nr_dict['result'][i]['degrees']
+		degreess.append(degrees)
+		address = nr_dict['result'][i]['address']
+		addresses.append(address)
+		date = nr_dict['result'][i]['date']
+		dates.append(date)
+		_id = nr_dict['result'][i]['_id']
+		_ids.append(_id)
+		
+		nr_f.writerow([has_more, in_outs, in_val, out_degree, weight, out_val, _key, in_degree, _rev, median, score, degrees, address,
+					date, _id, id])
+
+
+	nr_week_df = pd.DataFrame({'has_more': has_more,
+					  'in_outs': inouts,
+					  'in_val': invals,
+					  'out_degree': outdegrees,
+					  'weight': weights,
+					  'out_val': outvals,
+					  '_key': _keys,
+					  'in_degree': indegrees,
+					  '_rev': _revs,
+					  'median': medians,
+					  'score': scores,
+					  'degrees': degreess,
+					  'address': addresses,
+					  'date': dates,
+					  '_id': _ids,
+					  'id': id
+	})
+
+	print(nr_week_df)
+	
+	
+# this function query both the transactions and the cursor based on the returned id from the transaction query
+def transactionCursor(db, address, batch, start_ts, end_ts):
+	transactions_f = csv.writer(open('transaction.csv', 'w'))
+	transactions_f.writerow(['has_more', 'nonce', 'status', 'chainId', 'from', 'gas_price', 'type_from', 'to', '_key', 'timestamp', '_rev', 'gas_used',
+			   'type_to', 'height', 'tx_id', 'gas_limit', 'contract_address', 'hash', '_id', 'data', 'tx_value', 'tx_type', 'id'])
+			   
+	transaction_url = "http://111.203.228.11:9973/transaction?db=" + db + "&address=" + address + "&batch_size=" + batch + "&start_ts=" + start_ts + "&end_ts=" + end_ts
+	transaction_page = requests.get(transaction_url)
+	transaction_json = transaction_page.text
+	transaction_dict = json.loads(transaction_json)
+	
+	has_more = transaction_dict['has_more']
+	results = transaction_dict['result']
+	id = transaction_dict['id']
+	
+	cursor_url = "http://111.203.228.11:9973/cursor?db=" + db + "&id=" + str(id)
+	cursor_page = requests.get(cursor_url)
+	cursor_json = cursor_page.text
+	cursor_dict = json.loads(cursor_json)
+	
+	nonces = []
+	statuses = []
+	chainIds = []
+	froms = []
+	gasprices = []
+	typefroms = []
+	tos = []
+	_keys = []
+	timestamps = []
+	_revs = []
+	gasuseds = []
+	typetos = []
+	heights = []
+	tx_ids = []
+	gas_limits = []
+	contract_addresses = []
+	hashes = []
+	_ids = []
+	datas = []
+	tx_values = []
+	tx_types = []
+	for i in range(0, len(results)):
+		nonce = transaction_dict['result'][i]['nonce']
+		nonces.append(nonce)
+		status = transaction_dict['result'][i]['status']
+		statuses.append(status)
+		chainId = transaction_dict['result'][i]['chainId']
+		chainIds.append(chainId)
+		fr_om = transaction_dict['result'][i]['from']
+		froms.append(fr_om)
+		gas_price = transaction_dict['result'][i]['gas_price']
+		gasprices.append(gas_price)
+		type_from = transaction_dict['result'][i]['type_from']
+		typefroms.append(type_from)
+		to = transaction_dict['result'][i]['to']
+		tos.append(to)
+		_key = transaction_dict['result'][i]['_key']
+		_keys.append(_key)
+		timestamp = transaction_dict['result'][i]['timestamp']
+		timestamps.append(timestamp)
+		_rev = transaction_dict['result'][i]['_rev']
+		_revs.append(_rev)
+		gas_used = transaction_dict['result'][i]['gas_used']
+		gasuseds.append(gas_used)
+		type_to = transaction_dict['result'][i]['type_to']
+		typetos.append(type_to)
+		height = transaction_dict['result'][i]['height']
+		heights.append(height)
+		tx_id = transaction_dict['result'][i]['tx_id']
+		tx_ids.append(tx_id)
+		gas_limit = transaction_dict['result'][i]['gas_limit']
+		gas_limits.append(gas_limit)
+		contract_address = transaction_dict['result'][i]['contract_address']
+		contract_addresses.append(contract_address)
+		hash = transaction_dict['result'][i]['hash']
+		hashes.append(hash)
+		_id = transaction_dict['result'][i]['_id']
+		_ids.append(_id)
+		data = transaction_dict['result'][i]['data']
+		datas.append(data)
+		tx_value = transaction_dict['result'][i]['tx_value']
+		tx_values.append(tx_value)
+		tx_type = transaction_dict['result'][i]['tx_type']
+		tx_types.append(tx_type)
+		
+			
+		transactions_f.writerow([has_more, nonce, status, chainId, fr_om, gas_price, type_from, to, _key, timestamp, _rev, gas_used, type_to, height,
+				   tx_id, gas_limit, contract_address, hash, _id, data, tx_value, tx_type, id])
+			
+	transactions_df = pd.DataFrame({'has_more': has_more,
+					  'nonce': nonces,
+					  'status': statuses,
+					  'chainId': chainIds,
+					  'from': froms,
+					  'gas_price': gasprices,
+					  'type_from': typefroms,
+					  'to': tos,
+					  '_key': _keys,
+					  'timestamp': timestamps,
+					  '_rev': _revs,
+					  'gas_used': gasuseds,
+					  'type_to': typetos,
+					  'height': heights,
+					  'tx_id': tx_ids,
+					  'gas_limit': gas_limits,
+					  'contract_address': contract_addresses,
+					  'hash': hashes,
+					  '_id': _ids,
+					  'data': datas,
+					  'tx_value': tx_values,
+					  'tx_type': tx_types,
+					  'id': id
+	})
+
+	print(transactions_df)
+
+	
+	cursor_f = csv.writer(open('cursor.csv', 'w'))
+	cursor_f.writerow(['code', 'executionTime', 'writesExecuted', 'peakMemoryUsage', 'scannedFull', 'scannedIndex', 'filtered', 'httpRequests', 
+				'writesIgnored', 'warnings', 'cached', 'has_more', 'hasMore', 'nonce', 'status', 'chainId', 'from', 'gas_price', 'type_from',
+				'to', '_key', 'timestamp', '_rev', 'gas_used', 'type_to', 'height', 'tx_id', 'gas_limit', 'contract_address', 'hash', '_id',
+				'data', 'tx_value', 'tx_type', 'error', 'id'])
+
+	
+	code = cursor_dict['code']
+	execution_time = cursor_dict['extra']['stats']['executionTime']
+	writes_executed = cursor_dict['extra']['stats']['writesExecuted']
+	peak_memory_usage = cursor_dict['extra']['stats']['peakMemoryUsage']
+	scanned_full = cursor_dict['extra']['stats']['scannedFull']
+	scanned_index = cursor_dict['extra']['stats']['scannedIndex']
+	filtered = cursor_dict['extra']['stats']['filtered']
+	http_requests = cursor_dict['extra']['stats']['httpRequests']
+	writes_ignored = cursor_dict['extra']['stats']['writesIgnored']
+	warnings = cursor_dict['extra']['warnings']
+	cached = cursor_dict['cached']
+	cursor_has_more = cursor_dict['has_more']
+	hasMore = cursor_dict['hasMore']
+	cursor_results = cursor_dict['result']
+	error = cursor_dict['error']
+	cursorId = cursor_dict['id']
+
+	cursor_nonces = []
+	cursor_statuses = []
+	cursor_chainIds = []
+	cursor_froms = []
+	cursor_gasprices = []
+	cursor_typefroms = []
+	cursor_tos = []
+	cursor_keys = []
+	cursor_timestamps = []
+	cursor_revs = []
+	cursor_gasuseds = []
+	cursor_typetos = []
+	cursor_heights = []
+	cursor_tx_ids = []
+	cursor_gas_limits = []
+	cursor_contract_addresses = []
+	cursor_hashes = []
+	cursor_ids = []
+	cursor_datas = []
+	cursor_tx_values = []
+	cursor_tx_types = []
+
+	for i in range(0, len(cursor_results)):
+		cursor_nonce = cursor_dict['result'][i]['nonce']
+		cursor_nonces.append(nonce)
+		cursor_status = cursor_dict['result'][i]['status']
+		cursor_statuses.append(status)
+		cursor_chainId = cursor_dict['result'][i]['chainId']
+		cursor_chainIds.append(chainId)
+		cursor_fr_om = cursor_dict['result'][i]['from']
+		cursor_froms.append(fr_om)
+		cursor_gas_price = cursor_dict['result'][i]['gas_price']
+		cursor_gasprices.append(gas_price)
+		cursor_type_from = cursor_dict['result'][i]['type_from']
+		cursor_typefroms.append(type_from)
+		cursor_to = cursor_dict['result'][i]['to']
+		cursor_tos.append(to)
+		cursor_key = cursor_dict['result'][i]['_key']
+		cursor_keys.append(_key)
+		cursor_timestamp = cursor_dict['result'][i]['timestamp']
+		cursor_timestamps.append(timestamp)
+		cursor_rev = cursor_dict['result'][i]['_rev']
+		cursor_revs.append(_rev)
+		cursor_gas_used = cursor_dict['result'][i]['gas_used']
+		cursor_gasuseds.append(gas_used)
+		cursor_type_to = cursor_dict['result'][i]['type_to']
+		cursor_typetos.append(type_to)
+		cursor_height = cursor_dict['result'][i]['height']
+		cursor_heights.append(height)
+		cursor_tx_id = cursor_dict['result'][i]['tx_id']
+		cursor_tx_ids.append(tx_id)
+		cursor_gas_limit = cursor_dict['result'][i]['gas_limit']
+		cursor_gas_limits.append(gas_limit)
+		cursor_contract_address = cursor_dict['result'][i]['contract_address']
+		cursor_contract_addresses.append(contract_address)
+		cursor_hash = cursor_dict['result'][i]['hash']
+		cursor_hashes.append(hash)
+		cursor_id = cursor_dict['result'][i]['_id']
+		cursor_ids.append(_id)
+		cursor_data = cursor_dict['result'][i]['data']
+		cursor_datas.append(data)
+		cursor_tx_value = cursor_dict['result'][i]['tx_value']
+		cursor_tx_values.append(tx_value)
+		cursor_tx_type = cursor_dict['result'][i]['tx_type']
+		cursor_tx_types.append(tx_type)
+		
+		cursor_f.writerow([code, execution_time, writes_executed, peak_memory_usage, scanned_full, scanned_index, filtered, http_requests, 
+				   writes_ignored, warnings, cached, cursor_has_more, hasMore, cursor_nonce, cursor_status, cursor_chainId, cursor_fr_om,
+				   cursor_gas_price, cursor_type_from, cursor_to, cursor_key, cursor_timestamp, cursor_rev, cursor_gas_used, cursor_type_to,
+				   cursor_height, cursor_tx_id, cursor_gas_limit, cursor_contract_address, cursor_hash, cursor_id, cursor_data, cursor_tx_value,
+				   cursor_tx_type, error, cursorId])
+				   
+				   
+
+	cursor_df = pd.DataFrame({'code': pd.Series(code),
+					  'executionTime': pd.Series(execution_time),
+					  'writesExecuted': pd.Series(writes_executed),
+					  'peakMemoryUsage': pd.Series(peak_memory_usage),
+					  'scannedFull': pd.Series(scanned_full),
+					  'scannedIndex': pd.Series(scanned_index),
+					  'filtered': pd.Series(filtered),
+					  'httpRequests': pd.Series(http_requests),
+					  'writesIgnored': pd.Series(writes_ignored),
+					  'warnings': pd.Series(warnings),
+					  'cached': pd.Series(cached),
+					  'has_more': pd.Series(cursor_has_more),
+					  'hasMore': pd.Series(hasMore),
+					  'nonce': pd.Series(cursor_nonces),
+					  'status': pd.Series(cursor_statuses),
+					  'chainId': pd.Series(cursor_chainIds),
+					  'from': pd.Series(cursor_froms),
+					  'gas_price': pd.Series(cursor_gasprices),
+					  'type_from': pd.Series(cursor_typefroms),
+					  'to': pd.Series(cursor_tos),
+					  '_key': pd.Series(cursor_keys),
+					  'timestamp': pd.Series(cursor_timestamps),
+					  '_rev': pd.Series(cursor_revs),
+					  'gas_used': pd.Series(cursor_gasuseds),
+					  'type_to': pd.Series(cursor_typetos),
+					  'height': pd.Series(cursor_heights),
+					  'tx_id': pd.Series(cursor_tx_ids),
+					  'gas_limit': pd.Series(cursor_gas_limits),
+					  'contract_address': pd.Series(cursor_contract_addresses),
+					  'hash': pd.Series(cursor_hashes),
+					  '_id': pd.Series(cursor_ids),
+					  'data': pd.Series(cursor_datas),
+					  'tx_value': pd.Series(cursor_tx_values),
+					  'tx_type': pd.Series(cursor_tx_types),
+					  'error': pd.Series(error),
+					  'id': pd.Series(cursorId)
+	})
+
+
+	print(cursor_df)
+	
+	
+nrGivenDate(db_name, nr_batch_size, nr_batch_date, nr_date_address)
+nrGivenWeek(db_name, collection, nr_batch_size, nr_date_range, nr_week_address)
+transactionCursor(db_name, transaction_address, batch_size, start_ts, end_ts)
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+	
